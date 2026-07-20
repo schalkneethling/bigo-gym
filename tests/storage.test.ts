@@ -53,4 +53,28 @@ describe("attempt storage", () => {
     const storage = memoryStorage({ [STORAGE_KEY]: '{"nope":true}' });
     expect(loadAttempts(storage)).toEqual([]);
   });
+
+  it("falls back to an empty list when the storage access itself throws", () => {
+    // Sandboxed iframes / opaque origins throw on getItem (and even on access).
+    const blocked = {
+      get length(): number {
+        throw new DOMException("blocked", "SecurityError");
+      },
+      clear: () => {},
+      getItem: () => {
+        throw new DOMException("blocked", "SecurityError");
+      },
+      key: () => null,
+      removeItem: () => {},
+      setItem: () => {
+        throw new DOMException("blocked", "SecurityError");
+      },
+    } as Storage;
+
+    expect(() => loadAttempts(blocked)).not.toThrow();
+    expect(loadAttempts(blocked)).toEqual([]);
+    // A save must not throw either, and still returns the in-memory list.
+    expect(() => saveAttempt(record, blocked)).not.toThrow();
+    expect(saveAttempt(record, blocked)).toEqual([record]);
+  });
 });
