@@ -138,9 +138,13 @@ h3 {
   font-size: var(--typo-size-small);
 }
 
-/* Single stacked column: the practice card, then the results below it. */
+/* Single stacked column: the practice card, then the results below it.
+   minmax(0, 1fr) — not the implicit `auto` — so the column tracks the viewport
+   instead of inflating to the widest child (wide tables scroll inside their own
+   .table-scroll rather than pushing the whole page sideways on mobile). */
 .layout {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Page-shell alignment shared by both pages: header, main, and footer all sit
@@ -389,8 +393,11 @@ button.primary:hover {
   margin-block-end: var(--space-3);
 }
 
+/* minmax(0, 1fr) so the primer table and demo code scroll inside their own
+   containers on narrow screens instead of widening the page — see .layout. */
 .refresher-layout {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 /* The custom element itself is not a visual box — flatten it so the primer
@@ -760,6 +767,16 @@ bigo-gym-refresher {
   .refresher-card,
   .refresher-primer {
     padding: var(--space-3);
+  }
+
+  /* Give the data tables a legible floor and let them scroll inside their
+     .table-scroll wrapper, rather than crushing four columns into the width. */
+  .primer-table {
+    min-inline-size: 44rem;
+  }
+
+  .stats-table {
+    min-inline-size: 34rem;
   }
 }
 
