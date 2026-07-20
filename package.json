@@ -1,0 +1,42 @@
+{
+  "name": "bigo-gym",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Predict-then-reveal practice tool for recognizing time-complexity risk shapes.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "oxlint . && stylelint \"**/*.{css,scss}\"",
+    "lint:fix": "oxlint --fix . && stylelint \"**/*.{css,scss}\" --fix",
+    "lint:html": "html-validate index.html refresher.html",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "typecheck": "tsc --noEmit",
+    "quality": "pnpm typecheck && pnpm lint && pnpm lint:html && pnpm format:check"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "lit": "^3.3.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.54.1",
+    "@schalkneethling/stylelint-plugin-css-property-type-validator": "0.1.0-beta.1",
+    "@types/node": "^26.1.1",
+    "html-validate": "^11.5.6",
+    "oxfmt": "^0.59.0",
+    "oxlint": "^1.74.0",
+    "stylelint": "^17.14.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-order": "^8.1.1",
+    "stylelint-plugin-use-baseline": "^1.4.4",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.4",
+    "vitest": "^3.2.4"
+  }
+}
