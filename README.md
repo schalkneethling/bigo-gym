@@ -14,13 +14,17 @@ the same catalogue either way. `src/catalogue.ts` mirrors those names verbatim;
 if the catalogue changes, update the app to follow it, never the other way
 around.
 
-A one-page **refresher** (`refresher.html`) covers the eight patterns — each
-card shows the catalogue's giveaway, a tiny before/after example, and the fix.
-It renders straight from `src/catalogue.ts`, so it can never drift from what
-the gym grades against. The reveal panel and the stats table deep-link into it
-(`refresher.html#<id>`). Its before/after micro-examples live in
-`src/content/refresher.ts` and are deliberately separate from the gym's
-snippet bank — reusing gym snippets there would let visitors recognize
+A one-page **refresher** (`refresher.html`) covers the eight patterns. It opens
+with a Big-O primer (each class named and anchored at scale) and a "look for
+loops" tip, then shows one card per pattern. Each card pairs the catalogue's
+giveaway and fix with an interactive demo: the pattern and its fix side by side,
+an input-size slider, a "Run code" button that counts a real unit of work for
+each, and a "Highlight problem code" toggle. Cards render straight from
+`src/catalogue.ts` and the runnable examples in `src/content/runnable.ts` (via
+`src/components/gym-refresher.ts`), so they can never drift from what the gym
+grades against. The reveal panel and the stats table deep-link into it
+(`refresher.html#<id>`). Those runnable examples are deliberately separate from
+the gym's snippet bank — reusing gym snippets there would let visitors recognize
 labeled snippets instead of reading fresh code (a test guards this).
 
 ## Stack
@@ -112,5 +116,5 @@ visitor is genuinely reading the snippet rather than recognizing it.
 ## Deploying
 
 Static output in `dist/`; `netlify.toml` is set up for Netlify
-(`npm run build`, publish `dist`), intended for a subdomain of
+(`pnpm build`, publish `dist`), intended for a subdomain of
 schalkneethling.com such as `bigogym.schalkneethling.com`.
