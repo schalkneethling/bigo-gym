@@ -267,7 +267,10 @@ const stringConcatenation: RunnableExample = {
  */
 const sortingInLoop: RunnableExample = {
   makeInput: scrambled,
-  minN: 2,
+  // Below ~4 items a comparison sort can do fewer comparisons than a single
+  // scan (and tiny-n counts are erratic across engines), which would make the
+  // fix look worse than the pattern; start high enough that sorting clearly costs more.
+  minN: 6,
   maxN: 60,
   defaultN: 12,
   problem: {

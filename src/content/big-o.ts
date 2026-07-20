@@ -58,7 +58,7 @@ export const COMPLEXITY_PROFILES: readonly ComplexityProfile[] = [
   },
   {
     complexity: "O(n³) or worse",
-    name: "cubic time (part of the polynomial family)",
+    name: "cubic time or worse",
     growth: "Every pair of items, times yet another growing loop.",
     atScale: "n = 1,000 → 1,000,000,000 steps",
     spotIt: "A scan inside a nested loop; three-level joins over collections.",

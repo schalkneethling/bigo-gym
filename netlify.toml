@@ -1,3 +1,8 @@
 [build]
 command = "pnpm build"
 publish = "dist"
+
+[build.environment]
+# Pin the toolchain so deploys match local (package.json packageManager).
+NODE_VERSION = "24"
+PNPM_VERSION = "11.9.0"

@@ -33,13 +33,21 @@ function resolveStorage(storage?: Storage): Storage | null {
 }
 
 /**
+ * Session fallback for contexts where Web Storage is unavailable or blocked.
+ * Held at module scope so attempts accumulate across saves for the page's
+ * lifetime — the stats and next-snippet selection keep working, they just do
+ * not survive a reload.
+ */
+let memoryFallback: AttemptRecord[] = [];
+
+/**
  * Read all attempts for this visitor. Corrupt data, missing data, or blocked
- * Web Storage all yield [] — never a throw, so a card can render even where
- * persistence is unavailable.
+ * Web Storage never throw — a card can render everywhere. When storage is
+ * unavailable, the retained in-memory list is returned instead of a fresh [].
  */
 export function loadAttempts(storage?: Storage): AttemptRecord[] {
   const store = resolveStorage(storage);
-  if (!store) return [];
+  if (!store) return [...memoryFallback];
   try {
     const raw = store.getItem(STORAGE_KEY);
     if (raw === null) return [];
@@ -47,23 +55,26 @@ export function loadAttempts(storage?: Storage): AttemptRecord[] {
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(isAttemptRecord);
   } catch {
-    return [];
+    return [...memoryFallback];
   }
 }
 
 /**
  * Append one attempt and persist. Returns the updated list. When Web Storage is
- * blocked the write is skipped silently, so the caller still gets the updated
- * in-memory list for the current session.
+ * blocked the write is skipped, and the growing list is retained in memory so
+ * the session's stats keep accumulating across saves.
  */
 export function saveAttempt(record: AttemptRecord, storage?: Storage): AttemptRecord[] {
   const attempts = loadAttempts(storage);
   attempts.push(record);
   const store = resolveStorage(storage);
   try {
-    store?.setItem(STORAGE_KEY, JSON.stringify(attempts));
+    if (!store) throw new Error("Web Storage unavailable");
+    store.setItem(STORAGE_KEY, JSON.stringify(attempts));
   } catch {
-    // Persistence unavailable (blocked or over quota) — keep the in-memory list.
+    // Persistence unavailable (blocked or over quota) — retain the list in
+    // memory so subsequent reads see the full session, not just this record.
+    memoryFallback = attempts;
   }
   return attempts;
 }

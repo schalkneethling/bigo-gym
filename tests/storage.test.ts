@@ -54,7 +54,7 @@ describe("attempt storage", () => {
     expect(loadAttempts(storage)).toEqual([]);
   });
 
-  it("falls back to an empty list when the storage access itself throws", () => {
+  it("retains attempts in memory across saves when storage is blocked", () => {
     // Sandboxed iframes / opaque origins throw on getItem (and even on access).
     const blocked = {
       get length(): number {
@@ -71,10 +71,17 @@ describe("attempt storage", () => {
       },
     } as Storage;
 
+    // Reads never throw, and the session fallback accumulates across saves
+    // rather than resetting to a single record. Measured relative to a baseline
+    // so the shared module-level fallback keeps this order-independent.
     expect(() => loadAttempts(blocked)).not.toThrow();
-    expect(loadAttempts(blocked)).toEqual([]);
-    // A save must not throw either, and still returns the in-memory list.
+    const base = loadAttempts(blocked).length;
+
     expect(() => saveAttempt(record, blocked)).not.toThrow();
-    expect(saveAttempt(record, blocked)).toEqual([record]);
+    const after = saveAttempt({ ...record, snippetId: "s2" }, blocked);
+    expect(after).toHaveLength(base + 2);
+    expect(after[after.length - 1]?.snippetId).toBe("s2");
+    // A later read sees the retained list, not a fresh empty one.
+    expect(loadAttempts(blocked)).toHaveLength(base + 2);
   });
 });
