@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "integrations": [
+    "editorconfig",
+    "oxlint",
+    "oxlint-eslint",
+    "oxlint-typescript",
+    "oxlint-unicorn",
+    "oxlint-oxc",
+    "oxlint-import",
+    "oxlint-promise",
+    "oxlint-vitest",
+    "oxlint-jsdoc",
+    "oxfmt",
+    "stylelint",
+    "stylelint-standard",
+    "stylelint-order",
+    "stylelint-baseline",
+    "css-property-type-validator"
+  ],
+  "files": [".editorconfig", "oxlint.json", ".stylelintrc.json"],
+  "managedFiles": [
+    {
+      "path": ".editorconfig",
+      "hash": "3a15156"
+    },
+    {
+      "path": "oxlint.json",
+      "hash": "0e708ad"
+    },
+    {
+      "path": ".stylelintrc.json",
+      "hash": "0f0db2e"
+    }
+  ],
+  "aiArtifacts": [],
+  "profile": "modern"
+}

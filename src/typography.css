@@ -1,0 +1,131 @@
+/* ---------------------------------------------------------------------------
+   Typescale — fluid type system.
+   Inter for body, Lora for headings. Font files load via <link> in each
+   page's <head> (preconnect + weights 400/600) rather than a CSS @import.
+
+   Each .typo-* class declares font-size twice on purpose: the var() clamp is
+   the baseline, and the --fluid-size() declaration upgrades it in browsers
+   that support CSS custom functions; everywhere else it is invalid and
+   ignored, leaving the clamp in effect.
+--------------------------------------------------------------------------- */
+
+/* This is a provided, verbatim design-system file built on CSS custom
+   functions (@function / --fluid-size()) — too new for the linter to parse or
+   for its baseline check. The var() clamp fallback keeps it safe everywhere.
+   Scope the two rules it cannot handle to this file rather than rewriting it. */
+/* stylelint-disable plugin/use-baseline, declaration-property-value-no-unknown */
+
+:root {
+  --typescale-ratio: 1.2; /* ratio this static scale was generated against */
+  --typo-body-family: "Inter", system-ui, sans-serif;
+  --typo-heading-family: "Lora", georgia, serif;
+  --typo-body-weight-default: 400;
+  --typo-heading-weight-default: 600;
+  --typo-line-height: 1.5;
+  --typo-letter-spacing: 0;
+  --typo-size-xs: clamp(0.607rem, 0.558rem + 0.25vw, 0.781rem);
+  --typo-size-small: clamp(0.729rem, 0.669rem + 0.3vw, 0.937rem);
+  --typo-size-default: clamp(0.875rem, 0.804rem + 0.36vw, 1.125rem);
+  --typo-size-sm-md: clamp(1.05rem, 0.964rem + 0.43vw, 1.35rem);
+  --typo-size-md: clamp(1.26rem, 1.157rem + 0.51vw, 1.62rem);
+  --typo-size-lg: clamp(1.512rem, 1.389rem + 0.62vw, 1.944rem);
+  --typo-size-xl: clamp(1.815rem, 1.667rem + 0.74vw, 2.333rem);
+  --typo-size-xxl: clamp(2.177rem, 1.999rem + 0.89vw, 2.799rem);
+  --typo-size-display: clamp(2.613rem, 2.399rem + 1.07vw, 3.359rem);
+}
+
+@function --fluid-size(
+    --min <length>,
+    --max <length>,
+    --min-vw <length>: 20rem,
+    --max-vw <length>: 90rem
+  )
+  returns <length> {
+  result: clamp(
+    var(--min),
+    var(--min) + (var(--max) - var(--min)) * (100vw - var(--min-vw)) /
+      (var(--max-vw) - var(--min-vw)),
+    var(--max)
+  );
+}
+
+.typo-xs {
+  font-family: var(--typo-body-family);
+  font-size: var(--typo-size-xs);
+  font-size: --fluid-size(0.607rem, 0.781rem);
+  font-weight: var(--typo-body-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-small {
+  font-family: var(--typo-body-family);
+  font-size: var(--typo-size-small);
+  font-size: --fluid-size(0.729rem, 0.937rem);
+  font-weight: var(--typo-body-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-default {
+  font-family: var(--typo-body-family);
+  font-size: var(--typo-size-default);
+  font-size: --fluid-size(0.875rem, 1.125rem);
+  font-weight: var(--typo-body-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-sm-md {
+  font-family: var(--typo-heading-family);
+  font-size: var(--typo-size-sm-md);
+  font-size: --fluid-size(1.05rem, 1.35rem);
+  font-weight: var(--typo-heading-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-md {
+  font-family: var(--typo-heading-family);
+  font-size: var(--typo-size-md);
+  font-size: --fluid-size(1.26rem, 1.62rem);
+  font-weight: var(--typo-heading-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-lg {
+  font-family: var(--typo-heading-family);
+  font-size: var(--typo-size-lg);
+  font-size: --fluid-size(1.512rem, 1.944rem);
+  font-weight: var(--typo-heading-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-xl {
+  font-family: var(--typo-heading-family);
+  font-size: var(--typo-size-xl);
+  font-size: --fluid-size(1.815rem, 2.333rem);
+  font-weight: var(--typo-heading-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-xxl {
+  font-family: var(--typo-heading-family);
+  font-size: var(--typo-size-xxl);
+  font-size: --fluid-size(2.177rem, 2.799rem);
+  font-weight: var(--typo-heading-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}
+
+.typo-display {
+  font-family: var(--typo-heading-family);
+  font-size: var(--typo-size-display);
+  font-size: --fluid-size(2.613rem, 3.359rem);
+  font-weight: var(--typo-heading-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+}

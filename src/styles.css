@@ -1,0 +1,824 @@
+@import url("./typography.css");
+
+/* ---------------------------------------------------------------------------
+   Registered properties
+   Only --meter-fill is registered: the stats meters transition it, and typed
+   interpolation is what makes that transition animate instead of snapping.
+--------------------------------------------------------------------------- */
+
+/* @property is Baseline but past the linter's "widely available" cutoff; the
+   meter degrades to a non-animated fill without it, so the use is deliberate. */
+/* stylelint-disable-next-line plugin/use-baseline */
+@property --meter-fill {
+  inherits: false;
+  initial-value: 0%;
+  syntax: "<percentage>";
+}
+
+/* ---------------------------------------------------------------------------
+   Theming tokens
+--------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light dark;
+
+  --font-code:
+    ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", menlo, consolas, monospace;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2.5rem;
+  --radius: 0.5rem;
+
+  /* Max content width of the centered page column, shared by both pages so
+     their header/main/footer edges line up. --page-pad (the per-breakpoint
+     minimum inline padding) is set inside the media queries below. */
+  --page-max: 80rem;
+  --color-bg: #faf9f7;
+  --color-surface: #fff;
+  --color-text: #23211e;
+  --color-muted: #6d675e;
+  --color-border: #ddd8d0;
+  --color-accent: #0d6e5f;
+  --color-accent-contrast: #fff;
+  --color-correct: #0d6e5f;
+  --color-incorrect: #b3382c;
+  --color-meter-track: #e8e4dd;
+  --color-code-bg: #24292e;
+  --color-code-text: #e1e4e8;
+  --code-keyword: #f97583;
+  --code-string: #9ecbff;
+  --code-title: #b392f0;
+  --code-number: #79b8ff;
+  --code-comment: #8b949e;
+  --code-builtin: #ffab70;
+
+  /* Problem-line highlight, layered over the always-dark code surface. */
+  --color-code-problem: rgb(255 171 112 / 16%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #16181d;
+    --color-surface: #1e2128;
+    --color-text: #e7e9ec;
+    --color-muted: #9aa1ab;
+    --color-border: #343943;
+    --color-accent: #4cc2ad;
+    --color-accent-contrast: #10231f;
+    --color-correct: #4cc2ad;
+    --color-incorrect: #f2867a;
+    --color-meter-track: #2a2e37;
+    --color-code-bg: #14161a;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Base — shared at every viewport size
+--------------------------------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--typo-body-family);
+  font-size: var(--typo-size-default);
+  font-weight: var(--typo-body-weight-default);
+  letter-spacing: var(--typo-letter-spacing);
+  line-height: var(--typo-line-height);
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--typo-heading-family);
+  font-weight: var(--typo-heading-weight-default);
+  line-height: 1.2;
+  margin-block: 0 var(--space-2);
+}
+
+h1 {
+  font-size: var(--typo-size-xl);
+}
+
+h2 {
+  font-size: var(--typo-size-md);
+}
+
+h3 {
+  font-size: var(--typo-size-sm-md);
+}
+
+.site-header {
+  border-block-end: 0.0625rem solid var(--color-border);
+}
+
+.site-header h1 {
+  margin-block-end: var(--space-1);
+}
+
+.tagline,
+.results-note,
+.site-footer {
+  color: var(--color-muted);
+}
+
+.tagline {
+  margin-block: 0;
+  max-inline-size: 90ch;
+}
+
+.site-footer {
+  border-block-start: 0.0625rem solid var(--color-border);
+  font-size: var(--typo-size-small);
+}
+
+/* Single stacked column: the practice card, then the results below it. */
+.layout {
+  display: grid;
+}
+
+/* Page-shell alignment shared by both pages: header, main, and footer all sit
+   in the same centered column, so their content edges line up at every width.
+   The padding collapses to --page-pad on narrow viewports and centers the
+   column once the viewport exceeds --page-max. */
+.site-header,
+.site-footer,
+.layout,
+.refresher-layout {
+  padding-inline: max(var(--page-pad), calc((100% - var(--page-max)) / 2));
+}
+
+.visually-hidden {
+  block-size: 0.0625rem;
+  clip-path: inset(50%);
+  inline-size: 0.0625rem;
+  margin: -0.0625rem;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Practice card
+--------------------------------------------------------------------------- */
+
+.gym-card {
+  background: var(--color-surface);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius);
+  display: block;
+  overflow: hidden;
+}
+
+.snippet-scroll {
+  background: var(--color-code-bg);
+  overflow-x: auto;
+}
+
+.snippet {
+  color: var(--color-code-text);
+  font-family: var(--font-code);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+  padding: var(--space-3);
+}
+
+.snippet code {
+  font-family: inherit;
+}
+
+/* Syntax highlighting (highlight.js token classes).
+   These selectors mirror highlight.js's emitted class names verbatim, some of
+   which use underscores; they are third-party tokens, not ours to rename. */
+/* stylelint-disable selector-class-pattern */
+.hljs-keyword,
+.hljs-literal {
+  color: var(--code-keyword);
+}
+
+.hljs-string,
+.hljs-regexp {
+  color: var(--code-string);
+}
+
+.hljs-title,
+.hljs-title.function_,
+.hljs-title.class_ {
+  color: var(--code-title);
+}
+
+.hljs-number {
+  color: var(--code-number);
+}
+
+.hljs-comment {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.hljs-built_in,
+.hljs-type,
+.hljs-attr {
+  color: var(--code-builtin);
+}
+/* stylelint-enable selector-class-pattern */
+
+/* Prediction form */
+
+.predict-form {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.complexity-options {
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+}
+
+.complexity-options legend {
+  font-weight: 600;
+  margin-block-end: var(--space-2);
+  padding: 0;
+}
+
+.complexity-option {
+  align-items: center;
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--font-code);
+  font-size: 0.875rem;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+}
+
+/* :has() is Baseline but past the linter's "widely available" cutoff; used
+   deliberately for the checked-radio highlight, with no functional fallback
+   needed (the control still works, it just is not outlined on old browsers). */
+/* stylelint-disable-next-line plugin/use-baseline */
+.complexity-option:has(input:checked) {
+  border-color: var(--color-accent);
+  outline: 0.0625rem solid var(--color-accent);
+}
+
+.shape-field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.shape-field label {
+  font-weight: 600;
+}
+
+.shape-field select {
+  background: var(--color-surface);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font: inherit;
+  max-inline-size: 100%;
+  padding: var(--space-2);
+}
+
+button.primary {
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius);
+  color: var(--color-accent-contrast);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  justify-self: start;
+  padding: var(--space-2) var(--space-4);
+}
+
+button.primary:hover {
+  filter: brightness(1.1);
+}
+
+/* Reveal panel */
+
+.reveal {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.reveal h3 {
+  margin: 0;
+}
+
+.reveal-results {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.reveal-results dt {
+  color: var(--color-muted);
+  font-size: var(--typo-size-small);
+  font-weight: 600;
+}
+
+.reveal-results dd {
+  margin: 0;
+}
+
+.reveal-results .correct dd {
+  color: var(--color-correct);
+}
+
+.reveal-results .incorrect dd {
+  color: var(--color-incorrect);
+}
+
+.explanation {
+  background: var(--color-bg);
+  border-inline-start: 0.1875rem solid var(--color-accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 0;
+  padding: var(--space-3);
+}
+
+/* ---------------------------------------------------------------------------
+   Refresher
+--------------------------------------------------------------------------- */
+
+.cta-link {
+  background: var(--color-accent);
+  border-radius: var(--radius);
+  color: var(--color-accent-contrast);
+  display: inline-block;
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  text-decoration: none;
+}
+
+.cta-link:hover {
+  filter: brightness(1.1);
+}
+
+.review-link a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.refresher-cta {
+  margin-block: var(--space-3) 0;
+}
+
+.review-link {
+  margin: 0;
+}
+
+.breadcrumb {
+  margin-block-end: var(--space-3);
+}
+
+.refresher-layout {
+  display: grid;
+}
+
+/* The custom element itself is not a visual box — flatten it so the primer
+   and each card become grid items of .refresher-layout and pick up its gap. */
+bigo-gym-refresher {
+  display: contents;
+}
+
+.refresher-card,
+.refresher-primer {
+  background: var(--color-surface);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius);
+
+  /* Room for the sticky-free anchor jump to land the heading clearly. */
+  scroll-margin-block-start: var(--space-3);
+}
+
+.refresher-card:target,
+.refresher-primer:target {
+  border-color: var(--color-accent);
+  outline: 0.0625rem solid var(--color-accent);
+}
+
+.refresher-card h2,
+.refresher-primer h2 {
+  font-size: var(--typo-size-sm-md);
+  margin-block-end: var(--space-3);
+}
+
+.refresher-card p,
+.refresher-primer p {
+  margin-block: var(--space-3) 0;
+  max-inline-size: 72ch;
+}
+
+.refresher-primer .table-scroll {
+  margin-block-start: var(--space-3);
+}
+
+/* "Look for loops" life-hack callout — set off from the surface with the page
+   background and an accent bar so it reads as a practical shortcut. */
+.refresher-tip {
+  background: var(--color-bg);
+  border-inline-start: 0.1875rem solid var(--color-accent);
+  border-radius: var(--radius);
+  margin-block-start: var(--space-3);
+  padding: var(--space-3);
+}
+
+.refresher-tip h3 {
+  font-size: var(--typo-size-small);
+  letter-spacing: 0.03em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.refresher-primer .refresher-tip p {
+  margin-block-start: var(--space-2);
+}
+
+.refresher-tip code {
+  font-family: var(--font-code);
+  white-space: nowrap;
+}
+
+.primer-table {
+  border-collapse: collapse;
+  font-size: var(--typo-size-small);
+  inline-size: 100%;
+}
+
+.primer-table th,
+.primer-table td {
+  border-block-end: 0.0625rem solid var(--color-border);
+  padding: var(--space-2);
+  text-align: start;
+  vertical-align: top;
+}
+
+.primer-table thead th {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.primer-table tbody th code {
+  font-family: var(--font-code);
+  white-space: nowrap;
+}
+
+/* The spoken name for the class, sitting under the notation. */
+.class-name {
+  color: var(--color-muted);
+  display: block;
+  font-weight: 400;
+  margin-block-start: var(--space-1);
+}
+
+.primer-table .at-scale {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.example-pair {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+.example-pair figure {
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.example-pair figcaption {
+  color: var(--color-muted);
+  font-size: var(--typo-size-small);
+  font-weight: 600;
+  margin-block-end: var(--space-1);
+}
+
+.example-pair .snippet-scroll {
+  border-radius: var(--radius);
+}
+
+.example-pair .snippet {
+  font-size: 0.8125rem;
+}
+
+/* Interactive "run it" demo (bigo-gym-demo) */
+
+.demo {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+.demo .example-pair {
+  align-items: stretch;
+  margin-block-start: 0;
+}
+
+/* Match the two code blocks' heights so their bottoms align, even though the
+   pattern carries more lines than the fix. */
+.demo .example-pair figure {
+  display: flex;
+  flex-direction: column;
+}
+
+.demo .example-pair .snippet-scroll {
+  flex: 1 1 auto;
+}
+
+.demo .example-pair .snippet {
+  block-size: 100%;
+}
+
+/* Line-wrapped code so a problem range can be flagged on demand. */
+.demo .snippet code {
+  display: block;
+}
+
+.code-line {
+  display: block;
+}
+
+.code-line-flagged {
+  background: var(--color-code-problem);
+  box-shadow: inset 0.1875rem 0 0 0 var(--code-builtin);
+}
+
+.demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.demo-toggle {
+  background: var(--color-surface);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+}
+
+.demo-toggle[aria-pressed="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.demo-hint {
+  color: var(--color-muted);
+  font-size: var(--typo-size-small);
+  margin: 0;
+}
+
+.demo-controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.demo-controls label {
+  font-weight: 600;
+}
+
+.demo-controls input[type="range"] {
+  /* Progressive enhancement — the slider is fully usable in its default color
+     without accent-color; past the linter's "widely available" cutoff. */
+  /* stylelint-disable-next-line plugin/use-baseline */
+  accent-color: var(--color-accent);
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.demo-controls output {
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 3ch;
+  text-align: end;
+}
+
+.demo-results {
+  background: var(--color-bg);
+  border: 0.0625rem solid var(--color-border);
+  border-radius: var(--radius);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.demo-results dl {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.demo-results dt {
+  color: var(--color-muted);
+  font-size: var(--typo-size-small);
+  font-weight: 600;
+}
+
+/* Lower specificity than .reveal-results .correct dd earlier, but different
+   properties, so the source order is intentional. */
+/* stylelint-disable-next-line no-descending-specificity */
+.demo-results dd {
+  margin: 0;
+}
+
+.demo-results dd strong {
+  font-family: var(--font-code);
+  font-size: var(--typo-size-md);
+  font-variant-numeric: tabular-nums;
+}
+
+.demo-note {
+  color: var(--color-muted);
+  font-size: var(--typo-size-small);
+  margin: 0;
+  max-inline-size: 72ch;
+}
+
+/* ---------------------------------------------------------------------------
+   Stats panel
+--------------------------------------------------------------------------- */
+
+/* Lower specificity than the .refresher-primer variants defined earlier, but
+   they set different properties, so the source order is intentional. */
+/* stylelint-disable-next-line no-descending-specificity */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.stats-table {
+  border-collapse: collapse;
+  font-size: var(--typo-size-small);
+  inline-size: 100%;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.stats-table th,
+.stats-table td {
+  border-block-end: 0.0625rem solid var(--color-border);
+  padding: var(--space-2);
+  text-align: start;
+  vertical-align: top;
+}
+
+.stats-table thead th {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.stats-table tbody th {
+  font-weight: 500;
+}
+
+.stats-table tbody th a {
+  color: inherit;
+  text-decoration-color: var(--color-border);
+  text-underline-offset: 0.2em;
+}
+
+.stats-table tbody th a:hover {
+  color: var(--color-accent);
+}
+
+.stats-table .num {
+  min-inline-size: 6rem;
+}
+
+.not-practiced-row {
+  color: var(--color-muted);
+}
+
+.accuracy-value {
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  background: linear-gradient(
+      to right,
+      var(--color-accent) var(--meter-fill),
+      transparent var(--meter-fill)
+    )
+    var(--color-meter-track);
+  block-size: 0.375rem;
+  border-radius: 100vmax;
+  display: block;
+  inline-size: 100%;
+  margin-block-start: var(--space-1);
+  transition: --meter-fill 400ms ease-out;
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive — Shared First. Every declaration that varies by viewport lives
+   in its own bounded range query; nothing below overrides another breakpoint.
+--------------------------------------------------------------------------- */
+
+@media (width < 40em) {
+  :root {
+    --page-pad: var(--space-3);
+  }
+
+  .site-header,
+  .site-footer {
+    padding-block: var(--space-3);
+  }
+
+  .layout {
+    gap: var(--space-4);
+    padding-block: var(--space-3);
+  }
+
+  .refresher-layout {
+    gap: var(--space-4);
+    padding-block: var(--space-3);
+  }
+
+  .refresher-card,
+  .refresher-primer {
+    padding: var(--space-3);
+  }
+}
+
+@media (40em <= width < 60em) {
+  :root {
+    --page-pad: var(--space-5);
+  }
+
+  .site-header,
+  .site-footer {
+    padding-block: var(--space-4);
+  }
+
+  .layout {
+    gap: var(--space-5);
+    padding-block: var(--space-4);
+  }
+
+  .refresher-layout {
+    gap: var(--space-5);
+    padding-block: var(--space-4);
+  }
+
+  .refresher-card,
+  .refresher-primer {
+    padding: var(--space-4);
+  }
+
+  .example-pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (width >= 60em) {
+  :root {
+    --page-pad: var(--space-5);
+  }
+
+  .site-header,
+  .site-footer {
+    padding-block: var(--space-4);
+  }
+
+  .layout {
+    gap: var(--space-5);
+    padding-block: var(--space-5);
+  }
+
+  .refresher-layout {
+    gap: var(--space-5);
+    padding-block: var(--space-5);
+  }
+
+  .refresher-card,
+  .refresher-primer {
+    padding: var(--space-5);
+  }
+
+  .example-pair {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
