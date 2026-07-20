@@ -355,48 +355,52 @@ const rebuildingCollection: RunnableExample = {
 };
 
 /**
- * Appending list items while calling `document.querySelector` inside the loop.
- * Every call walks the document again to locate the target; querying once and
- * reusing the reference scans the page a single time. (Bespoke instrumentation:
- * the counter models the DOM walk each querySelector performs.)
+ * Sizing cards to their container while reading a layout property inside the
+ * loop. Each `offsetHeight` read comes right after a style write, so the browser
+ * is forced to re-lay-out the whole page every iteration — layout thrashing, and
+ * genuinely O(n²) in the node count. Reading the value once, before the loop,
+ * lets the writes batch into a single layout. (Bespoke instrumentation: the
+ * counter models the nodes re-laid-out on each forced reflow. A plain
+ * `querySelector("#id")` would not do this — an id lookup is hashed, so caching
+ * it saves a constant factor, not a complexity class; the cost that actually
+ * compounds is a forced reflow.)
  */
-const domQueriesInLoop: RunnableExample = {
+const forcedReflowInLoop: RunnableExample = {
   makeInput: scrambled,
   minN: 2,
   maxN: 40,
   defaultN: 8,
   problem: {
-    code: `function renderNames(names) {
-  for (const name of names) {
-    const list = document.querySelector("#user-list");
-    list.append(renderItem(name));
+    code: `function fillHeights(cards, container) {
+  for (const card of cards) {
+    card.style.height = container.offsetHeight + "px";
   }
 }`,
     run: (input, tick) => {
-      const pageNodes = input.length;
-      for (const _name of input) {
-        // querySelector walks the page to find #user-list, every iteration
-        for (let node = 0; node < pageNodes; node++) tick();
+      const nodes = input.length;
+      for (const _card of input) {
+        // reading offsetHeight after a write forces a reflow over every node
+        for (let node = 0; node < nodes; node++) tick();
       }
     },
   },
   fixed: {
-    code: `function renderNames(names) {
-  const list = document.querySelector("#user-list");
-  for (const name of names) {
-    list.append(renderItem(name));
+    code: `function fillHeights(cards, container) {
+  const height = container.offsetHeight;
+  for (const card of cards) {
+    card.style.height = height + "px";
   }
 }`,
     run: (input, tick) => {
-      const pageNodes = input.length;
-      // one walk of the page, then the cached reference is reused
-      for (let node = 0; node < pageNodes; node++) tick();
+      const nodes = input.length;
+      // one forced reflow before the loop; the writes then batch into one layout
+      for (let node = 0; node < nodes; node++) tick();
     },
   },
   problemLines: [3],
-  unit: "DOM nodes scanned",
+  unit: "node layouts",
   caption: (n, patternOps, fixedOps) =>
-    `On a page of ${n} nodes rendering ${n} names, the pattern scans ${patternOps.toLocaleString()} nodes: querySelector runs inside the loop and walks the page again for each name (${n} × ${n}). Querying once and reusing the reference scans ${fixedOps.toLocaleString()}.`,
+    `On a page of ${n} nodes sizing ${n} cards, the pattern forces ${patternOps.toLocaleString()} node layouts: reading offsetHeight right after each style write makes the browser re-lay-out every node, once per card (${n} × ${n}). Reading the height once, before the loop, lets the writes settle into a single layout — ${fixedOps.toLocaleString()}.`,
 };
 
 /**
@@ -454,6 +458,6 @@ export const RUNNABLE_EXAMPLES: Record<ShapeId, RunnableExample> = {
   "string-concatenation": stringConcatenation,
   "sorting-in-loop": sortingInLoop,
   "rebuilding-collection": rebuildingCollection,
-  "dom-queries-in-loop": domQueriesInLoop,
+  "dom-queries-in-loop": forcedReflowInLoop,
   "array-membership-checks": arrayMembershipChecks,
 };

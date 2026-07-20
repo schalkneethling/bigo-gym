@@ -51,12 +51,13 @@ export class BigoGymRefresher extends LitElement {
           <p>
             Loops are where time complexity comes from. When you read code for Big-O, find the loops
             first: one loop over n items is O(n), a loop inside a loop is O(n²), and so on. Code
-            with no loops at all runs in constant time — O(1) — however large the input.
+            with no loops at all is usually constant time — O(1) — however large the input.
           </p>
           <p>
-            The catch: some loops hide inside a single call. <code>.includes()</code>,
-            <code>.sort()</code>, spreading an array, or a helper that scans a list all loop on the
-            inside — every pattern below is really a loop hiding in plain sight.
+            The catch is loops that do not look like loops. <code>.includes()</code>,
+            <code>.sort()</code>, spreading an array, a helper that scans a list, or a function that
+            calls itself all repeat work on the inside — every pattern below is really a loop hiding
+            in plain sight, and recursion is one too.
           </p>
         </aside>
         <div class="table-scroll">
